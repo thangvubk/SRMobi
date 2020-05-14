@@ -1,0 +1,13 @@
+dist: bionic  # ubuntu 18.04
+language: python
+
+python:
+  - "3.7"
+
+install:
+  - pip install flake8 isort yapf
+
+script:
+  - flake8 *.py --max-line-length 100 --exclude lib/test.py
+  - isort -rc --check-only --diff *.py
+  - yapf -r -d --style .style.yapf *.py
