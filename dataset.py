@@ -1,15 +1,13 @@
-import glob
 import os.path as osp
 import random
 
-import imageio
 import numpy as np
 
 
 class Dataset(object):
 
     def __init__(self,
-                 root='./data',
+                 root='./data/preprocess',
                  dataset='DIV2K',
                  split='train',
                  scale=4,
@@ -22,10 +20,11 @@ class Dataset(object):
         self.scale = scale
         self.crop_cfg = crop_cfg
 
-        lr_path = osp.join(root, split, dataset, 'LR')
-        hr_path = osp.join(root, split, dataset, 'HR')
-        self.lr_images = sorted(glob.glob(osp.join(lr_path, '*.png')))
-        self.hr_images = sorted(glob.glob(osp.join(hr_path, '*.png')))
+        lr_path = osp.join(root, split, dataset, 'lr.npy')
+        hr_path = osp.join(root, split, dataset, 'hr.npy')
+
+        self.lr_images = np.load(lr_path, allow_pickle=True)
+        self.hr_images = np.load(hr_path, allow_pickle=True)
 
         assert len(self.lr_images) > 0 and len(self.hr_images) > 0
 
@@ -33,11 +32,8 @@ class Dataset(object):
         return len(self.lr_images)
 
     def __getitem__(self, idx):
-        lr_path = self.lr_images[idx]
-        hr_path = self.hr_images[idx]
-
-        lr = imageio.imread(lr_path) / 255
-        hr = imageio.imread(hr_path) / 255
+        lr = self.lr_images[idx] / 255.
+        hr = self.hr_images[idx] / 255.
 
         if self.crop_cfg is not None:
             lr, hr = self._crop(lr, hr, self.crop_cfg)
