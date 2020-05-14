@@ -36,8 +36,8 @@ class Dataset(object):
         lr_path = self.lr_images[idx]
         hr_path = self.hr_images[idx]
 
-        lr = imageio.imread(lr_path)
-        hr = imageio.imread(hr_path)
+        lr = imageio.imread(lr_path) / 255
+        hr = imageio.imread(hr_path) / 255
 
         if self.crop_cfg is not None:
             lr, hr = self._crop(lr, hr, self.crop_cfg)
