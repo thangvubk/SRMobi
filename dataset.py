@@ -11,14 +11,18 @@ class Dataset(object):
                  dataset='DIV2K',
                  split='train',
                  scale=4,
-                 crop_cfg=dict(type='random', patch_size=48)):
+                 crop_cfg=dict(type='random', patch_size=48),
+                 flip_and_rotate=False,
+                 override_length=None):
         assert dataset in ['DIV2K']
-        assert split in ['train', 'val', 'test']
+        assert split in ['train', 'valid', 'test']
         self.root = root
         self.dataset = dataset
         self.split = split
         self.scale = scale
         self.crop_cfg = crop_cfg
+        self.flip_and_rotate = flip_and_rotate
+        self.override_length = override_length
 
         lr_path = osp.join(root, split, dataset, 'lr.npy')
         hr_path = osp.join(root, split, dataset, 'hr.npy')
@@ -29,19 +33,43 @@ class Dataset(object):
         assert len(self.lr_images) > 0 and len(self.hr_images) > 0
 
     def __len__(self):
-        return len(self.lr_images)
+        return (len(self.lr_images) if self.override_length is None else self.override_length)
 
     def __getitem__(self, idx):
-        lr = self.lr_images[idx] / 255.
-        hr = self.hr_images[idx] / 255.
+        lr = self.lr_images[idx]
+        hr = self.hr_images[idx]
 
         if self.crop_cfg is not None:
             lr, hr = self._crop(lr, hr, self.crop_cfg)
+
+        if self.flip_and_rotate:
+            lr, hr = self._flip_and_rotate(lr, hr)
+
+        return lr, hr
+
+    def _flip_and_rotate(self, lr, hr):
+        aug_idx = random.randint(0, 7)
+        assert aug_idx >= 0
+        assert aug_idx <= 7
+
+        if (aug_idx >> 2) & 1 == 1:
+            # transpose
+            lr = lr.transpose((1, 0, 2)).copy()
+            hr = hr.transpose((1, 0, 2)).copy()
+        if (aug_idx >> 1) & 1 == 1:
+            # vertical flip
+            lr = lr[::-1, :, :].copy()
+            hr = hr[::-1, :, :].copy()
+        if aug_idx & 1 == 1:
+            # horizontal flip
+            lr = lr[:, ::-1, :].copy()
+            hr = hr[:, ::-1, :].copy()
 
         return lr, hr
 
     def _crop(self, lr, hr, crop_cfg):
         crop_type = crop_cfg['type']
+        assert crop_type in ['random', 'fixed']
         patch_size = crop_cfg['patch_size']
         ih, iw, ic = lr.shape  # shape of original image
 
@@ -78,9 +106,9 @@ class DataLoader(object):
 
     def _reset_sampler(self):
         if self.shuffle:
-            self.sampler = iter(range(self.data_len))
-        else:
             self.sampler = iter(np.random.permutation(self.data_len))
+        else:
+            self.sampler = iter(range(self.data_len))
 
     def __iter__(self):
         self.iter = 0

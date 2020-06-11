@@ -8,7 +8,7 @@ import numpy as np
 SRC_PATH = 'data/origin'
 DEST_PATH = 'data/preprocess'
 DATASET = 'DIV2K'
-SPLIT = 'train'
+SPLIT = 'test'
 
 print('Reading data...')
 lr_path = osp.join(SRC_PATH, SPLIT, DATASET, 'LR')
