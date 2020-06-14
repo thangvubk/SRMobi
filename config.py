@@ -10,6 +10,7 @@ parser.add_argument('--num_valids', type=int, default=10, help='Number of image 
 parser.add_argument('--patch_size', type=int, default=48, help='Input patch size of train dataset')
 
 # model
+parser.add_argument('--num_blocks', type=int, default=16, help='number of resnet block')
 parser.add_argument('--num_channels', type=int, default=16, help='number of resnet channel')
 
 # training

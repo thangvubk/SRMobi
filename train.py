@@ -29,7 +29,7 @@ def main():
     train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=1, shuffle=False)
 
-    model = EDSR(channels=args.num_channels)
+    model = EDSR(num_blocks=args.num_blocks, channels=args.num_channels)
     loss_fn = tf.keras.losses.MeanAbsoluteError()
     optimizer = tf.keras.optimizers.Adam(args.learning_rate)
 
